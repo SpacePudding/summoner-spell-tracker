@@ -114,6 +114,5 @@ func determineEnemyTeamId(participants []Participants) (int, error) {
 			}
 		}
 	}
-
 	return 0, errors.New("your PUUID couldn't be found in the active game")
 }
