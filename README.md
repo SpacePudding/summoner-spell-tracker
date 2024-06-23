@@ -1,2 +1,2 @@
-# summoner-spell-tracker
+# Summoner-spell-tracker
 Countdown summoner spells using manual click
