@@ -24,20 +24,22 @@ func main() {
 	// I want to render "No active game currently found"
 	// renderInactiveScreen()
 
-	// I want to fetch the asset of summoners from a specific endpoint to keep things up to date.
-	// summonerAssets, err = fetchAssets()
+	championAssetURL, _ := fetchChampionAssetURL()
+	fmt.Println(championAssetURL)
+
+	// summoner, _ := fetchSummonerInfoAndAssetURL()
 
 	for {
 
 		// Use API call to fetch the game. The return from that call should be the five enemy champions and their png
 
-		ongoingMatch, err := obtainEnemyTeamAssets()
+		enemyData, err := obtainEnemyTeamAssets()
 
 		if err == nil {
 
 			// Otherwise if I get HTTP Status 200 I want to render the screen I want.
 			// renderScreen(summonerAssets, enemyChampions)
-			fmt.Println(ongoingMatch)
+			fmt.Println(enemyData)
 
 		}
 

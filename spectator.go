@@ -4,9 +4,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
-	"net/http"
 	"os"
+	"strings"
+)
+
+const (
+	BLUESIDE = 100
+	REDSIDE  = 200
 )
 
 type OngoingMatch struct {
@@ -22,9 +26,9 @@ type Participants struct {
 }
 
 type EnemyData struct {
-	Spell1Id   int
-	Spell2Id   int
-	ChampionId int
+	spell1Id   int
+	spell2Id   int
+	championId int
 }
 
 func obtainEnemyTeamAssets() ([]EnemyData, error) {
@@ -39,38 +43,22 @@ func obtainOngoingMatch() (OngoingMatch, error) {
 	encryptedPUUID := os.Getenv("PUUID")
 	urlEndpoint := fmt.Sprintf("https://euw1.api.riotgames.com/lol/spectator/v5/active-games/by-summoner/%s", encryptedPUUID)
 
-	// Create a GET request
-	req, err := http.NewRequest("GET", urlEndpoint, nil)
+	headers := map[string]string{
+		"X-Riot-Token": os.Getenv("API_KEY"),
+	}
+
+	body, err := FetchJSON(urlEndpoint, headers)
 	if err != nil {
-		panic(err)
+		if strings.Contains(err.Error(), "404") {
+			return OngoingMatch{}, errors.New("game not found")
+		}
+		return OngoingMatch{}, err
 	}
 
-	// Add headers if required (e.g., API key)
-	req.Header.Set("X-Riot-Token", os.Getenv("API_KEY")) // Replace with actual header name if needed
-
-	// Send HTTP request
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		panic(err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode == http.StatusNotFound {
-		return OngoingMatch{}, errors.New("game not found")
-	}
-
-	// Read the response body
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		panic(err)
-	}
-
-	// Parse the JSON response into a struct
 	var ongoingMatch OngoingMatch
 	err = json.Unmarshal(body, &ongoingMatch)
 	if err != nil {
-		panic(err)
+		return OngoingMatch{}, err
 	}
 
 	return ongoingMatch, nil
@@ -84,12 +72,12 @@ func extractEnemyData(participants []Participants) ([]EnemyData, error) {
 
 	enemyDataArr := []EnemyData{}
 
-	for i := 0; i < len(participants); i++ {
-		if participants[i].TeamId == enemyTeamId {
+	for _, participant := range participants {
+		if participant.TeamId == enemyTeamId {
 			enemyData := EnemyData{
-				Spell1Id:   participants[i].Spell1Id,
-				Spell2Id:   participants[i].Spell2Id,
-				ChampionId: participants[i].ChampionId,
+				spell1Id:   participant.Spell1Id,
+				spell2Id:   participant.Spell2Id,
+				championId: participant.ChampionId,
 			}
 			enemyDataArr = append(enemyDataArr, enemyData)
 		}
@@ -98,18 +86,17 @@ func extractEnemyData(participants []Participants) ([]EnemyData, error) {
 }
 
 func determineEnemyTeamId(participants []Participants) (int, error) {
-	const blueSide = 100
-	const redSide = 200
+	for _, particiant := range participants {
+		if particiant.PuuId == os.Getenv("PUUID") {
 
-	for i := 0; i < len(participants); i++ {
-		if participants[i].PuuId == os.Getenv("PUUID") {
-			allyTeamId := participants[i].TeamId
+			allyTeamId := particiant.TeamId
 
-			if allyTeamId == blueSide {
-				return redSide, nil
-			} else if allyTeamId == redSide {
-				return blueSide, nil
-			} else {
+			switch allyTeamId {
+			case BLUESIDE:
+				return REDSIDE, nil
+			case REDSIDE:
+				return BLUESIDE, nil
+			default:
 				return 0, fmt.Errorf("unknown teamId %d", allyTeamId)
 			}
 		}
