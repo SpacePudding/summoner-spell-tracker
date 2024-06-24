@@ -93,11 +93,11 @@ func TestExtractEnemyData(t *testing.T) {
 				{PuuId: "enemy-5", TeamId: 200, Spell1Id: 1, Spell2Id: 2, ChampionId: 110},
 			},
 			expectedEnemyData: []EnemyData{
-				{Spell1Id: 5, Spell2Id: 6, ChampionId: 106},
-				{Spell1Id: 1, Spell2Id: 2, ChampionId: 107},
-				{Spell1Id: 3, Spell2Id: 4, ChampionId: 108},
-				{Spell1Id: 5, Spell2Id: 6, ChampionId: 109},
-				{Spell1Id: 1, Spell2Id: 2, ChampionId: 110},
+				{spell1Id: 5, spell2Id: 6, championId: 106},
+				{spell1Id: 1, spell2Id: 2, championId: 107},
+				{spell1Id: 3, spell2Id: 4, championId: 108},
+				{spell1Id: 5, spell2Id: 6, championId: 109},
+				{spell1Id: 1, spell2Id: 2, championId: 110},
 			},
 		},
 	}
