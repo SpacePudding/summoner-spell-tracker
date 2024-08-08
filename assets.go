@@ -7,18 +7,15 @@ import (
 	"strconv"
 )
 
-// ChampionData represents the structure of the champion data
 type ChampionData struct {
 	Data map[string]Champion `json:"data"`
 }
 
-// Champion represents the structure of each champion's details
 type Champion struct {
 	Key   string `json:"key"`
 	Image Image  `json:"image"`
 }
 
-// Champion represents the structure of each champion's details
 type Image struct {
 	ImageUrl string `json:"full"`
 }

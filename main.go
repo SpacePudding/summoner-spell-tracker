@@ -7,13 +7,6 @@ import (
 	"github.com/joho/godotenv"
 )
 
-type SummonerAssets struct {
-}
-
-// type OngoingMatch struct {
-// 	GameId int `json:"gameId"`
-// }
-
 func main() {
 
 	err := godotenv.Load()
@@ -25,14 +18,13 @@ func main() {
 	// renderInactiveScreen()
 
 	championAssetURL, _ := fetchChampionAssetURL()
-	fmt.Println(championAssetURL)
+	_ = championAssetURL
 
 	// summoner, _ := fetchSummonerInfoAndAssetURL()
 
 	for {
 
 		// Use API call to fetch the game. The return from that call should be the five enemy champions and their png
-
 		enemyData, err := obtainEnemyTeamAssets()
 
 		if err == nil {
@@ -48,7 +40,3 @@ func main() {
 		fmt.Println("Done waiting!")
 	}
 }
-
-// func fetchAssets() (SummonerAssets, error) {
-
-// }
