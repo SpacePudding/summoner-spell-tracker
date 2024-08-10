@@ -26,6 +26,23 @@
 			],
 			"group": "test",
 			"detail": "cd /home/michael/projects/summoner-spell-tracker; go test ./..."
-		}
+		},
+		{
+            "label": "Build and Run summoner-spell-tracker",
+            "type": "shell",
+            "command": "go",
+            "args": [
+                "run",
+                "."
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [
+                "$go"
+            ],
+            "detail": "Build and run the summoner-spell-tracker Go binary"
+        }
 	]
 }

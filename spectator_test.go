@@ -70,13 +70,13 @@ func TestDetermineEnemyTeamId(t *testing.T) {
 	}
 }
 
-func TestExtractEnemyData(t *testing.T) {
+func TestExtractEnemydata(t *testing.T) {
 	os.Setenv("PUUID", "mocked-puuid")
 
 	tests := []struct {
 		name              string
 		participants      []Participants
-		expectedEnemyData []EnemyData
+		expectedEnemydata []EnemyData
 	}{
 		{
 			name: "Extract EnemyTeam data",
@@ -92,7 +92,7 @@ func TestExtractEnemyData(t *testing.T) {
 				{PuuId: "enemy-4", TeamId: 200, Spell1Id: 5, Spell2Id: 6, ChampionId: 109},
 				{PuuId: "enemy-5", TeamId: 200, Spell1Id: 1, Spell2Id: 2, ChampionId: 110},
 			},
-			expectedEnemyData: []EnemyData{
+			expectedEnemydata: []EnemyData{
 				{spell1Id: 5, spell2Id: 6, championId: 106},
 				{spell1Id: 1, spell2Id: 2, championId: 107},
 				{spell1Id: 3, spell2Id: 4, championId: 108},
@@ -104,9 +104,9 @@ func TestExtractEnemyData(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			enemyData, _ := extractEnemyData(tt.participants)
-			if !reflect.DeepEqual(enemyData, tt.expectedEnemyData) {
-				t.Fatalf("expected enemy data: %v, got: %v", tt.expectedEnemyData, enemyData)
+			enemydata, _ := extractEnemyData(tt.participants)
+			if !reflect.DeepEqual(enemydata, tt.expectedEnemydata) {
+				t.Fatalf("expected enemy data: %v, got: %v", tt.expectedEnemydata, enemydata)
 			}
 		})
 	}

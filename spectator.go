@@ -31,12 +31,49 @@ type EnemyData struct {
 	championId int
 }
 
-func obtainEnemyTeamAssets() ([]EnemyData, error) {
+type EnemyAssets struct {
+	SummonerSpell1IdInfo SummonerInfo
+	SummonerSpell2IdInfo SummonerInfo
+	ChampionIdURL        string
+}
+
+func ObtainEnemyAssets(g *Game) {
+
+	enemyAssetURLArray := []EnemyAssets{}
+
+	// Ensure the response is sent even if the function returns early
+	defer func() {
+		g.apiResponseChannel <- enemyAssetURLArray
+	}()
+
 	ongoingMatch, err := obtainOngoingMatch()
 	if err != nil {
-		return []EnemyData{}, err
+		g.isGameActive = false
+		return
 	}
-	return extractEnemyData(ongoingMatch.Participants)
+
+	if !g.isGameActive {
+		enemyParticipants, err := extractEnemyData(ongoingMatch.Participants)
+		if err != nil {
+			return
+		}
+
+		for _, enemyParticipant := range enemyParticipants {
+
+			summonerSpell1 := SummonerInfo{Cooldown: g.summonerAsset[enemyParticipant.spell1Id].Cooldown, URL: g.summonerAsset[enemyParticipant.spell1Id].URL}
+			summonerSpell2 := SummonerInfo{Cooldown: g.summonerAsset[enemyParticipant.spell2Id].Cooldown, URL: g.summonerAsset[enemyParticipant.spell2Id].URL}
+
+			enemyAssetURL := EnemyAssets{
+				SummonerSpell1IdInfo: summonerSpell1,
+				SummonerSpell2IdInfo: summonerSpell2,
+				ChampionIdURL:        g.championAssetURL[enemyParticipant.championId],
+			}
+			enemyAssetURLArray = append(enemyAssetURLArray, enemyAssetURL)
+		}
+
+		g.isGameActive = true
+	}
+
 }
 
 func obtainOngoingMatch() (OngoingMatch, error) {
@@ -55,13 +92,13 @@ func obtainOngoingMatch() (OngoingMatch, error) {
 		return OngoingMatch{}, err
 	}
 
-	var ongoingMatch OngoingMatch
-	err = json.Unmarshal(body, &ongoingMatch)
+	var currentMatch OngoingMatch
+	err = json.Unmarshal(body, &currentMatch)
 	if err != nil {
 		return OngoingMatch{}, err
 	}
 
-	return ongoingMatch, nil
+	return currentMatch, nil
 }
 
 func extractEnemyData(participants []Participants) ([]EnemyData, error) {
