@@ -37,6 +37,27 @@ func FetchJSON(url string, headers map[string]string) ([]byte, error) {
 	return io.ReadAll(resp.Body)
 }
 
+func FetchPng(url string, client *http.Client) image.Image {
+
+	resp, err := client.Get(url)
+	if err != nil {
+		log.Fatalf("Failed to fetch image: %v", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		log.Fatalf("Failed to fetch image: %v", resp.Status)
+	}
+
+	// Decode the PNG image
+	img, err := png.Decode(resp.Body)
+	if err != nil {
+		log.Fatalf("Failed to decode image: %v", err)
+	}
+
+	return img
+}
+
 func LoadEbitenImage(url string) *ebiten.Image {
 	image, err := loadImage(url)
 	if err != nil {

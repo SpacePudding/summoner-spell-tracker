@@ -1,6 +1,7 @@
 package main
 
 import (
+	"image"
 	"log"
 	"time"
 
@@ -13,16 +14,16 @@ type Game struct {
 	scaledBackground       *ebiten.Image
 	activeGameScreen       *ebiten.Image
 	scaledActiveGameScreen *ebiten.Image
-	championAssetURL       map[int]string
+	championAsset          map[int]image.Image
 	summonerAsset          map[int]SummonerInfo
 	apiRequestChannel      chan bool
 	apiResponseChannel     chan []EnemyAssets
 	apiPeriodicTimer       *time.Timer
-	enemyAssets            []EnemyAssets
 	isGameActive           bool
+	summonerButtons        []*SummonerButton
 }
 
-func RenderDisplayScreen(championAssetURL map[int]string, summonerAsset map[int]SummonerInfo) {
+func RenderDisplayScreen(championAsset map[int]image.Image, summonerAsset map[int]SummonerInfo) {
 
 	ebiten.SetFullscreen(true)
 
@@ -30,7 +31,7 @@ func RenderDisplayScreen(championAssetURL map[int]string, summonerAsset map[int]
 	game := &Game{
 		originalBackground: LoadEbitenImage("nightsky.png"),
 		activeGameScreen:   LoadEbitenImage("activeGame.png"),
-		championAssetURL:   championAssetURL,
+		championAsset:      championAsset,
 		summonerAsset:      summonerAsset,
 		apiRequestChannel:  make(chan bool, 1),
 		apiResponseChannel: make(chan []EnemyAssets),
@@ -48,10 +49,9 @@ func (g *Game) Update() error {
 
 	select {
 	case response := <-g.apiResponseChannel:
-		g.enemyAssets = response
-
+		_ = response
 		if g.isGameActive {
-			// Do something
+			// g.setSummonerButtonsToAsset(response)
 		}
 
 		g.apiPeriodicTimer = time.AfterFunc(10*time.Second, func() {
@@ -71,10 +71,26 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	if g.isGameActive {
 		if g.scaledActiveGameScreen != nil {
 			screen.DrawImage(g.scaledActiveGameScreen, nil)
+
+			for _, summonerButton := range g.summonerButtons {
+				summonerButton.Draw(screen)
+			}
 		}
 	} else {
 		if g.scaledBackground != nil {
 			screen.DrawImage(g.scaledBackground, nil)
 		}
+
+		for _, summonerButton := range g.summonerButtons {
+			summonerButton.Draw(screen)
+		}
 	}
 }
+
+// func (g *Game) setSummonerButtonsToAsset(enemyAssetSlice []EnemyAssets) {
+// 	for i, enemyAsset := range enemyAssetSlice {
+// 		g.summonerButtons[i].championPortrait.originalImage = (enemyAsset.ChampionIdURL)
+// 		g.summonerButtons[i].summonerSpell1.originalImage = (enemyAsset.SummonerSpell1IdInfo)
+// 		g.summonerButtons[i].summonerSpell2.originalImage = (enemyAsset.SummonerSpell2IdInfo)
+// 	}
+// }

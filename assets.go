@@ -3,6 +3,8 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"image"
+	"net/http"
 	"os"
 	"strconv"
 )
@@ -36,24 +38,33 @@ const (
 // SummonerInfo struct contains the information for summoner spells
 type SummonerInfo struct {
 	Cooldown float64
-	URL      string
+	Icon     image.Image
 }
 
 // FetchChampionAssetURL is a public function to fetch champion assets and returns map[int]string
-func FetchChampionAssetURL() (map[int]string, error) {
-	return fetchAssetURL(championURL, func(a asset) string {
-		lolVersion := os.Getenv("LOLVERSION")
-		return fmt.Sprint(baseURL, lolVersion, championAssetPartURL, a.Image.ImageUrl)
+func FetchChampionAssetURL(client *http.Client) (map[int]image.Image, error) {
+
+	lolVersion := os.Getenv("LOLVERSION")
+	baseURLChampion := fmt.Sprint(baseURL, lolVersion, championAssetPartURL)
+
+	return fetchAssetURL(championURL, func(a asset) image.Image {
+		pngURL := fmt.Sprint(baseURLChampion, a.Image.ImageUrl)
+		return FetchPng(pngURL, client)
 	})
 }
 
 // FetchSummonerSpellsAssetURL is a public function to fetch summoner spell assets and returns map[int]SummonerInfo
-func FetchSummonerSpellsAssetURL() (map[int]SummonerInfo, error) {
+func FetchSummonerSpellsAssetURL(client *http.Client) (map[int]SummonerInfo, error) {
+
+	lolVersion := os.Getenv("LOLVERSION")
+	baseURLSummoner := fmt.Sprint(baseURL, lolVersion, summonerAssetPartURL)
+
 	return fetchAssetURL(summonerURL, func(a asset) SummonerInfo {
-		lolVersion := os.Getenv("LOLVERSION")
+
+		pngURL := fmt.Sprint(baseURLSummoner, a.Image.ImageUrl)
 		return SummonerInfo{
 			Cooldown: a.Cooldown[0], // Fetches the first element in the Cooldown array
-			URL:      fmt.Sprint(baseURL, lolVersion, summonerAssetPartURL, a.Image.ImageUrl),
+			Icon:     FetchPng(pngURL, client),
 		}
 	})
 }

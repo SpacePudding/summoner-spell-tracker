@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"image"
 	"os"
 	"strings"
 )
@@ -32,9 +33,9 @@ type EnemyData struct {
 }
 
 type EnemyAssets struct {
-	SummonerSpell1IdInfo SummonerInfo
-	SummonerSpell2IdInfo SummonerInfo
-	ChampionIdURL        string
+	SummonerSpell1Info SummonerInfo
+	SummonerSpell2Info SummonerInfo
+	ChampionAsset      image.Image
 }
 
 func ObtainEnemyAssets(g *Game) {
@@ -60,13 +61,13 @@ func ObtainEnemyAssets(g *Game) {
 
 		for _, enemyParticipant := range enemyParticipants {
 
-			summonerSpell1 := SummonerInfo{Cooldown: g.summonerAsset[enemyParticipant.spell1Id].Cooldown, URL: g.summonerAsset[enemyParticipant.spell1Id].URL}
-			summonerSpell2 := SummonerInfo{Cooldown: g.summonerAsset[enemyParticipant.spell2Id].Cooldown, URL: g.summonerAsset[enemyParticipant.spell2Id].URL}
+			summonerSpell1 := SummonerInfo{Cooldown: g.summonerAsset[enemyParticipant.spell1Id].Cooldown, Icon: g.summonerAsset[enemyParticipant.spell1Id].Icon}
+			summonerSpell2 := SummonerInfo{Cooldown: g.summonerAsset[enemyParticipant.spell2Id].Cooldown, Icon: g.summonerAsset[enemyParticipant.spell2Id].Icon}
 
 			enemyAssetURL := EnemyAssets{
-				SummonerSpell1IdInfo: summonerSpell1,
-				SummonerSpell2IdInfo: summonerSpell2,
-				ChampionIdURL:        g.championAssetURL[enemyParticipant.championId],
+				SummonerSpell1Info: summonerSpell1,
+				SummonerSpell2Info: summonerSpell2,
+				ChampionAsset:      g.championAsset[enemyParticipant.championId],
 			}
 			enemyAssetURLArray = append(enemyAssetURLArray, enemyAssetURL)
 		}
