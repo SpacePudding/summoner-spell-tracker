@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"sync"
 )
 
 // assetData is a private struct that represents the structure of the JSON data
@@ -85,10 +86,26 @@ func fetchAssetURL[T any](dataURL string, process func(asset) T) (map[int]T, err
 		return nil, err
 	}
 
+	numberOfItems := len(data.Data)
+	done := make(chan bool, numberOfItems) // Buffered channel
+
 	result := make(map[int]T)
+	var mu sync.Mutex // Mutex to synchronize access to the map
+
 	for _, a := range data.Data {
-		num, _ := strconv.Atoi(a.Key)
-		result[num] = process(a)
+		go func(a asset) {
+			defer func() { done <- true }()
+			num, _ := strconv.Atoi(a.Key)
+			processed := process(a)
+
+			mu.Lock() // Lock before accessing the map
+			result[num] = processed
+			mu.Unlock() // Unlock after updating the map
+		}(a)
+	}
+
+	for range data.Data {
+		<-done // Wait for each goroutine to signal completion
 	}
 
 	return result, nil
