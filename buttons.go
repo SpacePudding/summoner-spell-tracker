@@ -1,7 +1,19 @@
 package main
 
 import (
+	"fmt"
+	"image"
+	"image/color"
+	"math"
+
 	"github.com/hajimehoshi/ebiten/v2"
+	"golang.org/x/image/font"
+	"golang.org/x/image/font/basicfont"
+	"golang.org/x/image/math/fixed"
+)
+
+const (
+	textFontSize = 24
 )
 
 type SummonerButton struct {
@@ -13,36 +25,92 @@ type SummonerButton struct {
 type Button struct {
 	x, y, width, height int
 	image               *ebiten.Image
-	cooldownTimer       int // in seconds
+	cooldown            int
+	cooldownTimer       int
 	isCoolingDown       bool
 	originalImage       *ebiten.Image
 }
 
 func (b *SummonerButton) Draw(screen *ebiten.Image) {
+	// Draw all buttons
+	b.drawButton(screen, &b.summonerSpell1)
+	b.drawButton(screen, &b.summonerSpell2)
+	b.drawButton(screen, &b.championPortrait)
 
-	// Draw the button
-	op1 := &ebiten.DrawImageOptions{}
-	op1.GeoM.Translate(float64(b.summonerSpell1.x), float64(b.summonerSpell1.y))
-	screen.DrawImage(b.summonerSpell1.image, op1)
+	// Draw cooldown masks for buttons with active cooldowns
+	if b.summonerSpell1.isCoolingDown {
+		b.drawCooldownMask(screen, &b.summonerSpell1)
+		b.drawCooldownTimer(screen, &b.summonerSpell1)
+	}
+	if b.summonerSpell2.isCoolingDown {
+		b.drawCooldownMask(screen, &b.summonerSpell2)
+		b.drawCooldownTimer(screen, &b.summonerSpell2)
+	}
+}
 
-	op2 := &ebiten.DrawImageOptions{}
-	op2.GeoM.Translate(float64(b.summonerSpell2.x), float64(b.summonerSpell2.y))
-	screen.DrawImage(b.summonerSpell2.image, op2)
+func (b *SummonerButton) drawButton(screen *ebiten.Image, btn *Button) {
+	op := &ebiten.DrawImageOptions{}
+	op.GeoM.Translate(float64(btn.x), float64(btn.y))
+	screen.DrawImage(btn.image, op)
+}
 
-	op3 := &ebiten.DrawImageOptions{}
-	op3.GeoM.Translate(float64(b.championPortrait.x), float64(b.championPortrait.y))
-	screen.DrawImage(b.championPortrait.image, op3)
+func (b *SummonerButton) drawCooldownMask(screen *ebiten.Image, btn *Button) {
+	cooldownFraction := float64(btn.cooldownTimer) / float64(btn.cooldown)
 
-	// // If the button is cooling down, overlay a darker shade and draw the cooldown timer
-	// if b.isCoolingDown {
-	// 	// Darken the button
-	// 	darkOverlay := ebiten.NewImage(b.width, b.height)
-	// 	darkOverlay.Fill(color.RGBA{0, 0, 0, 128}) // semi-transparent black overlay
-	// 	screen.DrawImage(darkOverlay, op)
+	// Create a mask that covers the button
+	mask := ebiten.NewImage(btn.width, btn.height)
+	mask.Fill(color.RGBA{0, 0, 0, 128}) // Fully shaded
 
-	// 	// Draw the cooldown timer as text
-	// 	// ebitenutil.DebugPrintAt(screen, fmt.Sprintf("%d", b.cooldownTimer), b.x+10, b.y+10)
-	// }
+	// Calculate the angle for revealing the button
+	arcRadius := float64(btn.width) / 2
+	arcAngle := 2 * math.Pi * (1 - cooldownFraction) // Clockwise angle in radians
+
+	for y := 0; y < btn.height; y++ {
+		for x := 0; x < btn.width; x++ {
+			dx := float64(x) - arcRadius
+			dy := float64(y) - arcRadius
+			angle := math.Atan2(dy, dx) + math.Pi/2 // Start from 12 o'clock
+
+			// Normalize the angle to be between 0 and 2*math.Pi
+			if angle < 0 {
+				angle += 2 * math.Pi
+			}
+
+			// Reveal the section of the button based on the cooldown progress
+			if angle <= arcAngle {
+				mask.Set(x, y, color.RGBA{0, 0, 0, 0}) // Transparent (revealing)
+			}
+		}
+	}
+
+	// Draw the mask on top of the button
+	op := &ebiten.DrawImageOptions{}
+	op.GeoM.Translate(float64(btn.x), float64(btn.y))
+	screen.DrawImage(mask, op)
+}
+
+func (b *SummonerButton) drawCooldownTimer(screen *ebiten.Image, btn *Button) {
+	// Create a new image for the text
+	text := fmt.Sprintf("%d", btn.cooldownTimer)
+	textImage := ebiten.NewImage(textFontSize*len(text), textFontSize)
+	textImage.Fill(color.Transparent)
+
+	// Draw the text
+	face := basicfont.Face7x13
+	d := &font.Drawer{
+		Dst:  textImage,
+		Src:  image.NewUniform(color.White),
+		Face: face,
+		Dot:  fixed.Point26_6{fixed.Int26_6(0), fixed.Int26_6(textFontSize)},
+	}
+	d.DrawString(text)
+
+	// Center the text image on the button
+	textOp := &ebiten.DrawImageOptions{}
+	textOp.GeoM.Translate(float64(btn.x+btn.width/2)-float64(textFontSize*len(text))/2, float64(btn.y+btn.height/2)-float64(textFontSize)/2)
+
+	// Draw the text image on the screen
+	screen.DrawImage(textImage, textOp)
 }
 
 func (b *Button) Update() {
@@ -50,7 +118,7 @@ func (b *Button) Update() {
 		b.cooldownTimer--
 		if b.cooldownTimer <= 0 {
 			b.isCoolingDown = false
-			b.image = b.originalImage // Reset to original image
+			b.cooldownTimer = b.cooldown
 		}
 	}
 }

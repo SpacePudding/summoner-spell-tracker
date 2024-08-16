@@ -49,11 +49,11 @@ func ObtainEnemyAssets(g *Game) {
 
 	ongoingMatch, err := obtainOngoingMatch()
 	if err != nil {
-		g.isGameActive = false
+		g.GameState = Inactive
 		return
 	}
 
-	if !g.isGameActive {
+	if g.GameState == Inactive {
 		enemyParticipants, err := extractEnemyData(ongoingMatch.Participants)
 		if err != nil {
 			return
@@ -71,8 +71,7 @@ func ObtainEnemyAssets(g *Game) {
 			}
 			enemyAssetURLArray = append(enemyAssetURLArray, enemyAssetURL)
 		}
-
-		g.isGameActive = true
+		g.GameState = Found
 	}
 
 }

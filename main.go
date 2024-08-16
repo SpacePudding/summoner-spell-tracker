@@ -1,24 +1,17 @@
 package main
 
 import (
-	"fmt"
 	"image"
 	"net/http"
-	"time"
 
 	"github.com/joho/godotenv"
 )
 
 func main() {
-	start := time.Now() // Record the start time
 	championAssetURL, summonerAsset, err := initializeLOLAssets()
 	if err != nil {
 		panic(err)
 	}
-
-	elapsed := time.Since(start) // Calculate the elapsed time
-
-	fmt.Printf("initializeLOLAssets took %s\n", elapsed)
 
 	RenderDisplayScreen(championAssetURL, summonerAsset)
 }
