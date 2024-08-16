@@ -1,15 +1,10 @@
 package main
 
 import (
-	"fmt"
-	"image"
 	"image/color"
 	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"golang.org/x/image/font"
-	"golang.org/x/image/font/basicfont"
-	"golang.org/x/image/math/fixed"
 )
 
 const (
@@ -40,11 +35,11 @@ func (b *SummonerButton) Draw(screen *ebiten.Image) {
 	// Draw cooldown masks for buttons with active cooldowns
 	if b.summonerSpell1.isCoolingDown {
 		b.drawCooldownMask(screen, &b.summonerSpell1)
-		b.drawCooldownTimer(screen, &b.summonerSpell1)
+		// b.drawCooldownTimer(screen, &b.summonerSpell1)
 	}
 	if b.summonerSpell2.isCoolingDown {
 		b.drawCooldownMask(screen, &b.summonerSpell2)
-		b.drawCooldownTimer(screen, &b.summonerSpell2)
+		// b.drawCooldownTimer(screen, &b.summonerSpell2)
 	}
 }
 
@@ -89,29 +84,31 @@ func (b *SummonerButton) drawCooldownMask(screen *ebiten.Image, btn *Button) {
 	screen.DrawImage(mask, op)
 }
 
-func (b *SummonerButton) drawCooldownTimer(screen *ebiten.Image, btn *Button) {
-	// Create a new image for the text
-	text := fmt.Sprintf("%d", btn.cooldownTimer)
-	textImage := ebiten.NewImage(textFontSize*len(text), textFontSize)
-	textImage.Fill(color.Transparent)
+// func (b *SummonerButton) drawCooldownTimer(screen *ebiten.Image, btn *Button) {
+// 	// Create a new image for the text
+// 	text := fmt.Sprintf("%d", btn.cooldownTimer)
+// 	textImage := ebiten.NewImage(
 
-	// Draw the text
-	face := basicfont.Face7x13
-	d := &font.Drawer{
-		Dst:  textImage,
-		Src:  image.NewUniform(color.White),
-		Face: face,
-		Dot:  fixed.Point26_6{fixed.Int26_6(0), fixed.Int26_6(textFontSize)},
-	}
-	d.DrawString(text)
+// 		textFontSize*len(text), textFontSize)
+// 	textImage.Fill(color.Transparent)
 
-	// Center the text image on the button
-	textOp := &ebiten.DrawImageOptions{}
-	textOp.GeoM.Translate(float64(btn.x+btn.width/2)-float64(textFontSize*len(text))/2, float64(btn.y+btn.height/2)-float64(textFontSize)/2)
+// 	// Draw the text
+// 	face := basicfont.Face7x13
+// 	d := &font.Drawer{
+// 		Dst:  textImage,
+// 		Src:  image.NewUniform(color.White),
+// 		Face: face,
+// 		Dot:  fixed.Point26_6{fixed.Int26_6(0), fixed.Int26_6(textFontSize)},
+// 	}
+// 	d.DrawString(text)
 
-	// Draw the text image on the screen
-	screen.DrawImage(textImage, textOp)
-}
+// 	// Center the text image on the button
+// 	textOp := &ebiten.DrawImageOptions{}
+// 	textOp.GeoM.Translate(float64(btn.x+btn.width/2)-float64(textFontSize*len(text))/2, float64(btn.y+btn.height/2)-float64(textFontSize)/2)
+
+// 	// Draw the text image on the screen
+// 	screen.DrawImage(textImage, textOp)
+// }
 
 func (b *Button) Update() {
 	if b.isCoolingDown {
